@@ -13,16 +13,24 @@
 extern void* (*real_malloc)(unsigned long size, void* type, int flags) PAYLOAD_BSS;
 extern void (*real_free)(void* addr, void* type) PAYLOAD_BSS;
 extern void* (*real_memcpy)(void* dst, const void* src, size_t len) PAYLOAD_BSS;
+extern size_t (*real_strlen)(const char *str) PAYLOAD_BSS; //newly added
+extern char * (*real_strstr) (const char *haystack, const char *needle) PAYLOAD_BSS; //newly added
 
 extern void* M_TEMP PAYLOAD_BSS;
 extern struct sbl_map_list_entry** sbl_driver_mapped_pages PAYLOAD_BSS;
 extern uint8_t* mini_syscore_self_binary PAYLOAD_BSS;
+extern struct malloc_type* M_IOV PAYLOAD_BSS; //newly added
+extern struct cdev** real_console_cdev PAYLOAD_BSS; //newly added
 
 extern int (*real_sceSblServiceMailbox)(unsigned long service_id, uint8_t request[SBL_MSG_SERVICE_MAILBOX_MAX_SIZE], void* response) PAYLOAD_BSS;
 extern int (*real_sceSblAuthMgrGetSelfInfo)(struct self_context* ctx, struct self_ex_info** info) PAYLOAD_BSS;
 extern void (*real_sceSblAuthMgrSmStart)(void**) PAYLOAD_BSS;
 extern int (*real_sceSblAuthMgrIsLoadable2)(struct self_context* ctx, struct self_auth_info* old_auth_info, int path_id, struct self_auth_info* new_auth_info) PAYLOAD_BSS;
 extern int (*real_sceSblAuthMgrVerifyHeader)(struct self_context* ctx) PAYLOAD_BSS;
+extern int (*real_sceSblACMgrGetPathId)(const char* path) PAYLOAD_BSS; //newly added
+extern int (*real_console_write)(struct cdev* dev, struct uio* uio, int ioflag) PAYLOAD_BSS; //newly added
+extern int (*real_deci_tty_write)(struct cdev* dev, struct uio* uio, int ioflag) PAYLOAD_BSS; //newly added
+extern struct uio* (*real_cloneuio)(struct uio* uiop) PAYLOAD_BSS; //newly added
 
 static const uint8_t s_auth_info_for_exec[] PAYLOAD_RDATA =
 {
@@ -377,4 +385,37 @@ PAYLOAD_CODE int my_sceSblAuthMgrSmLoadSelfBlock__sceSblServiceMailbox(unsigned 
   }
 
   return result;
+}
+
+PAYLOAD_CODE int my_sceSblAuthMgrIsLoadable__sceSblACMgrGetPathId(const char* path) { //newly added
+	static const char* self_dir_prefix = "/data/self/";
+	const char* p;
+	int ret;
+
+	if (path) {
+		p = real_strstr(path, self_dir_prefix);
+		if (p)
+			path = p + real_strlen(self_dir_prefix);
+	}
+
+	ret = real_sceSblACMgrGetPathId(path);
+
+	return ret;
+}
+
+PAYLOAD_CODE int deci_tty_write__hook(struct cdev* dev, struct uio* uio, int ioflag) {  //newly added
+	struct uio* cloned_uio = NULL;
+	int ret;
+
+	cloned_uio = real_cloneuio(uio);
+
+	ret = real_deci_tty_write(dev, uio, ioflag);
+
+	if (cloned_uio) {
+		if (*real_console_cdev)
+			real_console_write(*real_console_cdev, cloned_uio, ioflag);
+		real_free(cloned_uio, M_IOV);
+	}
+
+	return ret;
 }
