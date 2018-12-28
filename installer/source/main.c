@@ -205,6 +205,9 @@ int kernel_payload(struct thread *td, struct kernel_payload_args* args)
 
   // flatz enable debug RIFs
   *(uint64_t *)(kernel_base + 0x62D30D) = 0x3D38EB00000001B8;
+	
+  // patch mprotect to allow RWX mapping
+  *(uint64_t *)(kernel_base + 0x396A56) = 0x9090FA3890909090;
 
   // Restore write protection
   writeCr0(cr0);
