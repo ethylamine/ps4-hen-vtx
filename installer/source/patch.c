@@ -191,16 +191,16 @@ int do_patch()
     { NULL, 0xD40F28, "free\0", 5 },
     
     // SHELLCORE_SANDBOX_ENABLE_DATA_MOUNT_OFFSET
-	  //{ NULL, 0x2C575C, "\x31\xC0\xFF\xC0\x90", 5 },
+    //{ NULL, 0x2C575C, "\x31\xC0\xFF\xC0\x90", 5 },
     
     // disable screenshot patch
-	  { NULL, 0xB4B0B, "\x90\x90\x90\x90\x90", 5 },
+    { NULL, 0xB4B0B, "\x90\x90\x90\x90\x90", 5 },
     
     // make pkgs installer working with external hdd
-	  { NULL, 0x845D11, "\0", 1 },
+    { NULL, 0x845D11, "\0", 1 },
     
     //enable fpkg for patches
-	  //{ NULL, 0x3799FC, "\xE9\x96\x00\x00\x00\x90\x90\x90", 8 },
+    //{ NULL, 0x3799FC, "\xE9\x96\x00\x00\x00\x90\x90\x90", 8 },
 
     { NULL, 0, NULL, 0 },
   };
