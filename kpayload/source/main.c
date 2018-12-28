@@ -37,6 +37,15 @@ int (*real_sceSblServiceCryptAsync)(struct ccp_req* request) PAYLOAD_BSS;
 int (*real_sceSblKeymgrSmCallfunc)(union keymgr_payload* payload) PAYLOAD_BSS;
 
 void* M_TEMP PAYLOAD_BSS;
+struct malloc_type* M_IOV PAYLOAD_BSS; //newly added
+struct cdev** real_console_cdev PAYLOAD_BSS; //newly added
+char * (*real_strstr)(const char *haystack, const char *needle) PAYLOAD_BSS; //newly added
+size_t (*real_strlen)(const char *str) PAYLOAD_BSS; //newly added
+int (*real_sceSblACMgrGetPathId)(const char* path) PAYLOAD_BSS; //newly added
+int (*real_console_write)(struct cdev* dev, struct uio* uio, int ioflag) PAYLOAD_BSS; //newly added
+int (*real_deci_tty_write)(struct cdev* dev, struct uio* uio, int ioflag) PAYLOAD_BSS; //newly added
+struct uio* (*real_cloneuio)(struct uio* uiop) PAYLOAD_BSS; //newly added
+
 void* fpu_ctx PAYLOAD_BSS;
 uint8_t* mini_syscore_self_binary PAYLOAD_BSS;
 struct sbl_map_list_entry** sbl_driver_mapped_pages PAYLOAD_BSS;
@@ -51,6 +60,8 @@ extern int my_sceSblPfsKeymgrGenEKpfsForGDGPAC_sceSblPfsKeymgrIoctl(struct pfs_k
 extern int my_sceSblPfsSetKey_pfs_sbl_init(uint32_t* ekh, uint32_t* skh, uint8_t* key, uint8_t* iv, int type, int unused, uint8_t is_disc) PAYLOAD_CODE;
 extern int my_sceSblServiceCryptAsync_pfs_crypto(struct ccp_req* request) PAYLOAD_CODE;
 extern int my_sceSblKeymgrSmCallfunc_npdrm_decrypt_rif_new(union keymgr_payload* payload) PAYLOAD_CODE;
+extern int my_sceSblAuthMgrIsLoadable__sceSblACMgrGetPathId(const char* path) PAYLOAD_CODE; //newly added
+extern int deci_tty_write__hook(struct cdev* dev, struct uio* uio, int ioflag) PAYLOAD_CODE; //newly added
 
 extern struct fake_key_desc s_fake_keys[MAX_FAKE_KEYS] PAYLOAD_BSS;
 extern struct sx s_fake_keys_lock PAYLOAD_BSS;
@@ -99,6 +110,14 @@ struct real_info real_infos[] PAYLOAD_DATA =
   { 0x1471468, &mini_syscore_self_binary },
   { 0x2519DD0, &sbl_driver_mapped_pages },
   { 0x2534DE0, &sbl_keymgr_key_rbtree },
+  { 0x14447F0, &M_IOV }, //newly added
+  { 0x1A6CB08, &real_console_cdev }, //newly added
+  { 0x261710, &real_strstr }, //newly added
+  { 0x3514F0, &real_strlen }, //newly added
+  { 0x16A5E0, &real_sceSblACMgrGetPathId }, //newly added
+  { 0x30630, &real_console_write }, //newly added
+  { 0x474E40, &real_deci_tty_write }, //newly added, 0x474E40, new 0x475980
+  { 0x40420, &real_cloneuio }, //newly added
 
   { 0, NULL },
 };
@@ -111,6 +130,8 @@ struct disp_info disp_infos[] PAYLOAD_DATA =
   { 0x620599, &my_sceSblAuthMgrVerifyHeader },
   { 0x6238BA, &my_sceSblAuthMgrSmLoadSelfSegment__sceSblServiceMailbox },
   { 0x6244E1, &my_sceSblAuthMgrSmLoadSelfBlock__sceSblServiceMailbox },
+  { 0x61F0FC, &my_sceSblAuthMgrIsLoadable__sceSblACMgrGetPathId }, //newly added
+  { 0x199BDC8, &deci_tty_write__hook }, //newly added
 
   // Fpkg 
   { 0x62DF00, &my_sceSblKeymgrSmCallfunc_npdrm_decrypt_isolated_rif },
