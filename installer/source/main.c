@@ -208,6 +208,41 @@ int kernel_payload(struct thread *td, struct kernel_payload_args* args)
 	
   // patch mprotect to allow RWX mapping
   *(uint64_t *)(kernel_base + 0x396A56) = 0x9090EA3890909090;
+	
+  // patch memcpy, 4.55
+  *(uint8_t *)(kernel_base + 0x14A6BD) = 0xEB;
+	
+  // patch sceSblACMgrIsAllowedSystemLevelDebugging, 4.55
+  *(uint64_t *)(kernel_base + 0x16A530) = 0x48C7C001000000C3;
+	
+  // patch sceSblACMgrHasMmapSelfCapability, 4.55
+  *(uint64_t *)(kernel_base + 0x16A5B0) = 0x48C7C001000000C3;
+	
+  // patch sceSblACMgrIsAllowedToMmapSelf, 4.55
+  *(uint64_t *)(kernel_base + 0x16A5C0) = 0x48C7C001000000C3;
+	
+  // disable sysdump_perform_dump_on_fatal_trap
+  // will continue execution and give more information on crash, such as rip, 4.55
+  *(uint8_t *)(kernel_base + 0x736250) = 0xC3;
+	
+  // self patches, 4.55 possibly wrong
+  *(uint64_t *)(kernel_base + 0x143BE7) = 0x31C0909090;
+	
+  // patch vm_map_protect check, 4.55
+  *(uint64_t *)(kernel_base + 0x396A58) = 0x909090909090;
+	
+  // patch ptrace, thanks 2much4u, 4.55 possibly wrong
+  *(uint8_t *)(kernel_base + 0x17D2C1) = 0xEB;
+	
+  // remove all these bullshit checks from ptrace, by golden, 4.55 possibly wrong
+  *(uint64_t *)(kernel_base + 0x17D636) = 0xE915010000;
+	
+  // patch ASLR, thanks 2much4u, 4.55
+  *(uint16_t *)(kernel_base + 0x1BA559) = 0x9090;
+	
+  // patch kmem_alloc, 4.55
+  *(uint8_t *)(kernel_base + 0x16ED8C) = (0x01 | 0x02 | 0x04);
+  *(uint8_t *)(kernel_base + 0x16EDA2) = (0x01 | 0x02 | 0x04);
 
   // Restore write protection
   writeCr0(cr0);
